@@ -1,0 +1,48 @@
+{
+  "name": "vue-quick-cropper",
+  "version": "0.0.1",
+  "description": "基于vue的移动端头像裁剪插件",
+  "main": "index.js",
+  "scripts": {
+    "dev-test": "parcel watch test/* --no-cache & karma start",
+    "test": "parcel build test/* --no-minify && karma start --single-run",
+    "build": "npx parcel build index.js --no-minify --no-cache",
+    "dev": "npx parcel index.html --no-cache"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duyanpeng/vue-quick-cropper.git"
+  },
+  "keywords": [
+    "vue",
+    "cropper"
+  ],
+  "author": "duyanpeng",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/duyanpeng/vue-quick-cropper/issues"
+  },
+  "homepage": "https://github.com/duyanpeng/vue-quick-cropper#readme",
+  "alias": {
+    "vue": "./node_modules/vue/dist/vue.common.js"
+  },
+  "devDependencies": {
+    "@vue/component-compiler-utils": "^2.1.0",
+    "chai": "^4.1.2",
+    "karma": "^2.0.4",
+    "karma-chai": "^0.1.0",
+    "karma-chai-spies": "^0.1.4",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-mocha": "^1.3.0",
+    "karma-sinon-chai": "^2.0.2",
+    "mocha": "^5.2.0",
+    "parcel-bundler": "^1.9.4",
+    "sinon": "^6.1.2",
+    "sinon-chai": "^3.2.0",
+    "vue-template-compiler": "^2.5.16"
+  },
+  "dependencies": {
+    "vue": "^2.5.16",
+    "vue-hot-reload-api": "^2.3.0"
+  }
+}
