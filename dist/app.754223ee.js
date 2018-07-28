@@ -10322,8 +10322,16 @@ exports.default = {
   props: {},
   data: function data() {
     return {
-      imgSrc: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1532688589528&di=9cbedf775f773bd21d13c2ef737663b4&imgtype=0&src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201504%2F22%2F20150422H1756_sNuWa.thumb.700_0.jpeg"
-    };
+      imgSrc: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1532688589528&di=9cbedf775f773bd21d13c2ef737663b4&imgtype=0&src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201504%2F22%2F20150422H1756_sNuWa.thumb.700_0.jpeg",
+      ctx: {}, // canvas实例
+      img: {}, // img实例
+      width: 0, // canvas宽
+      height: 0, // canvas高
+      startScreen: undefined, // 触摸点坐标
+      moveScreen: { x: 0, y: 0 }, // 移动中点坐标
+      endScreen: undefined, // 结束触摸点坐标
+      posImg: { x: 0, y: 0 // 照片移动的距离
+      } };
   },
 
 
@@ -10337,6 +10345,14 @@ exports.default = {
 
 
   methods: {
+    click: function click() {
+      var rectWidth = this.width * 0.8;
+      var rectHeight = this.height * 0.8;
+      var rectX = this.width * 0.1;
+      var rectY = (this.height - rectWidth) / 2;
+      this.drawHeader(this.ctx, this.img, -this.posImg.x + rectX, -this.posImg.y + rectY, this.width, this.height);
+    },
+
     // 初始化canvas
     initCanvas: function initCanvas() {
       var _this = this;
@@ -10348,144 +10364,82 @@ exports.default = {
         C.height = _this.$el.getBoundingClientRect().height;
 
         var ctx = C.getContext("2d");
-        var rectWidth = C.width * 0.8;
-        var rectX = C.width * 0.1;
-        var rectY = (C.height - rectWidth) / 2;
 
         var img = new Image();
         img.onload = function () {
-          ctx.drawImage(img, 0, 0, C.width, C.height);
+          _this.drawImg(ctx, img, 0, 0, C.width, C.height);
+          // 裁剪框
+          _this.drawRect();
         };
-        // img.src = this.imgSrc
-
-        _this.drawRect(ctx, rectX, rectY, rectWidth);
+        img.src = _this.imgSrc;
+        _this.ctx = ctx;
+        _this.img = img;
+        _this.width = C.width;
+        _this.height = C.height;
       });
     },
 
     // 画头像
-    drawImg: function drawImg() {},
+    drawImg: function drawImg(ctx, img, x, y, width, height) {
+      this.drawClear();
+      ctx.drawImage(img, x, y, width, height);
+      this.drawRect();
+    },
+
+    // 裁剪头像
+    drawHeader: function drawHeader(ctx, img, x, y, width, height) {
+      var rectWidth = this.width * 0.8;
+      var rectHeight = this.height * 0.8;
+      var rectX = this.width * 0.1;
+      var rectY = (this.height - rectWidth) / 2;
+      this.drawClear();
+
+      ctx.drawImage(img, x * (this.img.width / this.width), y * (this.img.width / this.width), rectWidth * (this.img.width / this.width), rectWidth * (this.img.width / this.width), rectX, rectY, rectWidth, rectWidth);
+      this.drawRect();
+    },
 
     // 画剪切框
-    drawRect: function drawRect(ctx, x, y, width) {
-      ctx.strokeRect(x, y, width, width);
+    drawRect: function drawRect() {
+      var rectWidth = this.width * 0.8;
+      var rectX = this.width * 0.1;
+      var rectY = (this.height - rectWidth) / 2;
+      this.ctx.strokeRect(rectX, rectY, rectWidth, rectWidth);
     },
 
-    // 获得滚动距离
-    getScrollTop: function getScrollTop() {
-      return this.$el.scrollTop;
+    // 清楚画布
+    drawClear: function drawClear() {
+      this.ctx.clearRect(0, 0, this.width, this.height);
     },
 
-    // 设置滚动距离
-    setScrollTop: function setScrollTop(y) {
-      var _this2 = this;
-
-      this.$nextTick(function () {
-        _this2.$el.scrollTop = parseFloat(y);
-      });
-    },
+    // 初始化
     init: function init() {
       this.initCanvas();
+      this.bindTouchEvents();
     },
     bindTouchEvents: function bindTouchEvents() {
-      this.$refs.content.addEventListener("touchstart", this.handleTouchStart);
-      this.$refs.content.addEventListener("touchmove", this.handleTouchMove);
-      this.$refs.content.addEventListener("touchend", this.handleTouchEnd);
+      this.$refs.canvas.addEventListener("touchstart", this.handleTouchStart);
+      this.$refs.canvas.addEventListener("touchmove", this.handleTouchMove);
+      this.$refs.canvas.addEventListener("touchend", this.handleTouchEnd);
     },
     handleTouchStart: function handleTouchStart(e) {
-      // 只有没滚动时才触发事件
-      if (this.$refs.content.getBoundingClientRect().top < this.startPositionTop) {
-        return;
-      }
-      if (this.topStatus === TOPSTATUS.loading) {
-        return;
-      }
-
-      var screenY = e.touches[0].screenY;
-      this.startScreenY = screenY;
+      var x = e.touches[0].screenX;
+      var y = e.touches[0].screenY;
+      this.startScreen = { x: x, y: y };
     },
     handleTouchMove: function handleTouchMove(e) {
-      // 只有没滚动时才触发事件
-      if (this.$refs.content.getBoundingClientRect().top < this.startPositionTop) {
-        return;
-      }
-      if (this.topStatus === "loading") {
-        return;
-      }
-
-      var screenY = e.touches[0].screenY;
-      this.endScreenY = screenY;
-      var moveDistance = (screenY - this.startScreenY) / this.distanceIndex;
-      if (this.$refs.content.getBoundingClientRect().top > this.startPositionTop) {
-        this.topStatus = TOPSTATUS.pulling;
-      }
-
-      if (moveDistance >= this.topDistance) {
-        this.topStatus = TOPSTATUS.limit;
-      }
-      if (moveDistance > 0) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.transformStyle(this.$refs.content, moveDistance);
-      }
+      var x = e.touches[0].screenX;
+      var y = e.touches[0].screenY;
+      var mx = x - this.startScreen.x + this.posImg.x;
+      var my = y - this.startScreen.y + this.posImg.y;
+      this.drawImg(this.ctx, this.img, mx, my, this.width, this.height);
+      this.moveScreen = { x: x, y: y };
+      this.endScreen = {
+        x: mx,
+        y: my
+      };
     },
     handleTouchEnd: function handleTouchEnd(e) {
-      // 只有没滚动时才触发事件
-      if (this.$refs.content.getBoundingClientRect().top < this.startPositionTop) {
-        return;
-      }
-      if (this.topStatus === TOPSTATUS.pulling || this.topStatus === TOPSTATUS.limit) {
-        e.stopPropagation();
-        e.preventDefault();
-      }
-      if (this.topStatus === "loading") {
-        return;
-      }
-
-      if ((this.endScreenY - this.startScreenY) / this.distanceIndex >= this.topDistance) {
-        this.transformStyle(this.$refs.content, this.topLoadingDistance, true);
-        this.topStatus = TOPSTATUS.loading;
-        this.topMethod();
-        if (!this.disableBottom) {
-          this.bottomStatus = BOTTOMSTATUS.wait;
-        }
-      } else {
-        this.topStatus = TOPSTATUS.wait;
-        this.transformStyle(this.$refs.content, 0);
-        this.startScreenY = 0;
-        this.endScreenY = 0;
-      }
-    },
-
-    // 上拉数据加载完
-    onTopLoaded: function onTopLoaded() {
-      this.transformStyle(this.$refs.content, 0, true);
-      this.topStatus = TOPSTATUS.wait;
-      this.startScreenY = 0;
-      this.endScreenY = 0;
-    },
-
-    // 下拉数据加载完
-    onBottomLoaded: function onBottomLoaded() {
-      var flag = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
-
-      if (flag) {
-        this.bottomStatus = BOTTOMSTATUS.wait;
-      } else {
-        this.bottomStatus = BOTTOMSTATUS.nodata;
-      }
-    },
-
-    // 动画
-    transformStyle: function transformStyle(target, moveDistance, transition) {
-      var timer = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 200;
-
-      target.style["-webkit-transform"] = "translate3d(0," + moveDistance + "px,0)";
-      target.style["transform"] = "translate3d(0," + moveDistance + "px,0)";
-      target.style.transitionDuration = "0ms";
-      if (transition) {
-        target.style.transitionDuration = timer + "ms";
-      }
+      this.posImg = this.endScreen;
     }
   }
 };
@@ -10502,6 +10456,15 @@ exports.default = {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "vquick-cropper" }, [
+    _c(
+      "button",
+      {
+        staticStyle: { position: "fixed", right: "0", top: "0" },
+        on: { click: _vm.click }
+      },
+      [_vm._v("点击裁剪")]
+    ),
+    _vm._v(" "),
     _c("canvas", { ref: "canvas" })
   ])
 }
