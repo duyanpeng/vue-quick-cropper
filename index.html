@@ -1,33 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
-        *{
-            margin:0;
-            padding:0;
+        * {
+            margin: 0;
+            padding: 0;
         }
-        html,body,#app{
-            height:100%;
+
+        html,
+        body,
+        #app {
+            height: 100%;
             overflow: hidden;
         }
-        .item{
-            height:200px;
+
+        .item {
+            height: 200px;
             background: lightgray;
-            border:2px solid green;
+            border: 2px solid green;
             overflow: hidden;
+        }
+
+        #app {
+            box-sizing: border-box;
+            padding-top: 44px;
+
+        }
+
+        .content {
+            height: 100%;
+        }
+
+        .button {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 44px;
+            width: 100%;
+            background: green;
         }
     </style>
 </head>
+
 <body>
     <div id="app">
-        <quick-cropper>
-        </quick-cropper>
+        <div class="button">
+            <button @click="click">点击裁剪</button>
+            <input ref="file" @change="changepic" type="file">
+        </div>
+        <div class="content">
+            <!-- <img  ref="img" alt=""> -->
+            <quick-cropper ref="cropper" :img-src="imgSrc">
+            </quick-cropper>
+        </div>
     </div>
-    
+
     <script src="./src/app.js"></script>
 </body>
+
 </html>

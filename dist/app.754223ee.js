@@ -10000,6 +10000,8 @@ function getOuterHTML(el) {
 Vue.compile = compileToFunctions;
 
 module.exports = Vue;
+},{}],"static/touxiang.jpeg":[function(require,module,exports) {
+module.exports = "/touxiang.8f9333b3.jpeg";
 },{}],"node_modules/_parcel-bundler@1.9.7@parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
 var bundleURL = null;
 function getBundleURLCached() {
@@ -10317,21 +10319,45 @@ Object.defineProperty(exports, "__esModule", {
 //
 //
 //
+//
+//
 
 exports.default = {
-  props: {},
+  props: {
+    imgSrc: {}
+  },
   data: function data() {
     return {
-      imgSrc: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1532688589528&di=9cbedf775f773bd21d13c2ef737663b4&imgtype=0&src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201504%2F22%2F20150422H1756_sNuWa.thumb.700_0.jpeg",
+      imgSrcs:
+      // "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1532688589528&di=9cbedf775f773bd21d13c2ef737663b4&imgtype=0&src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201504%2F22%2F20150422H1756_sNuWa.thumb.700_0.jpeg",
+      require("../static/touxiang.jpeg"),
       ctx: {}, // canvas实例
       img: {}, // img实例
       width: 0, // canvas宽
       height: 0, // canvas高
+      imgWidth: 0,
+      imgHeight: 0,
       startScreen: undefined, // 触摸点坐标
       moveScreen: { x: 0, y: 0 }, // 移动中点坐标
       endScreen: undefined, // 结束触摸点坐标
-      posImg: { x: 0, y: 0 // 照片移动的距离
-      } };
+      posImg: { x: 0, y: 0 }, // 照片移动的距离
+      imageData: {}, // 裁剪区域的canvas信息值
+      base64: "", // 头像的base64
+      isMove: true, // 是否能拖动图片
+      scaleStart: {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0
+      },
+      scaleMove: {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0
+      },
+      widthRate: 1
+    };
   },
 
 
@@ -10340,17 +10366,17 @@ exports.default = {
   computed: {},
   watch: {},
   mounted: function mounted() {
-    this.init();
+    // this.init();
   },
 
 
   methods: {
-    click: function click() {
+    confirm: function confirm() {
       var rectWidth = this.width * 0.8;
       var rectHeight = this.height * 0.8;
       var rectX = this.width * 0.1;
       var rectY = (this.height - rectWidth) / 2;
-      this.drawHeader(this.ctx, this.img, -this.posImg.x + rectX, -this.posImg.y + rectY, this.width, this.height);
+      this.drawHeader(this.ctx, this.img, -this.posImg.x + rectX, -this.posImg.y + rectY);
     },
 
     // 初始化canvas
@@ -10364,18 +10390,27 @@ exports.default = {
         C.height = _this.$el.getBoundingClientRect().height;
 
         var ctx = C.getContext("2d");
+        // ctx.globalAlpha = 0.8
 
         var img = new Image();
-        img.onload = function () {
-          _this.drawImg(ctx, img, 0, 0, C.width, C.height);
-          // 裁剪框
-          _this.drawRect();
-        };
+
         img.src = _this.imgSrc;
         _this.ctx = ctx;
         _this.img = img;
         _this.width = C.width;
         _this.height = C.height;
+        var rate = 1;
+
+        img.onload = function () {
+          if (img.width / C.width > 1) {
+            rate = img.width / C.width;
+          }
+          _this.imgWidth = img.width / rate;
+          _this.imgHeight = img.height / rate;
+          _this.drawImg(ctx, img, 0, 0, _this.imgWidth, _this.imgHeight);
+          // 裁剪框
+          _this.drawRect();
+        };
       });
     },
 
@@ -10383,18 +10418,25 @@ exports.default = {
     drawImg: function drawImg(ctx, img, x, y, width, height) {
       this.drawClear();
       ctx.drawImage(img, x, y, width, height);
+
+      ctx.fillStyle = "rgba(0,0,0,.1)";
+      ctx.fillRect(0, 0, this.width, this.height);
       this.drawRect();
     },
 
     // 裁剪头像
     drawHeader: function drawHeader(ctx, img, x, y, width, height) {
+      this.isMove = false;
       var rectWidth = this.width * 0.8;
       var rectHeight = this.height * 0.8;
       var rectX = this.width * 0.1;
       var rectY = (this.height - rectWidth) / 2;
       this.drawClear();
+      ctx.drawImage(img, x * (this.img.width / this.width), y * (this.img.width / this.width), rectWidth * (this.img.width / this.imgWidth), rectWidth * (this.img.width / this.imgWidth), rectX, rectY, rectWidth, rectWidth);
 
-      ctx.drawImage(img, x * (this.img.width / this.width), y * (this.img.width / this.width), rectWidth * (this.img.width / this.width), rectWidth * (this.img.width / this.width), rectX, rectY, rectWidth, rectWidth);
+      this.imageData = ctx.getImageData(rectX, rectY, rectWidth, rectWidth);
+
+      this.makeHeader(rectWidth);
       this.drawRect();
     },
 
@@ -10403,12 +10445,31 @@ exports.default = {
       var rectWidth = this.width * 0.8;
       var rectX = this.width * 0.1;
       var rectY = (this.height - rectWidth) / 2;
+      this.ctx.strokeStyle = "#fff";
+      this.ctx.lineWidth = ".5";
       this.ctx.strokeRect(rectX, rectY, rectWidth, rectWidth);
     },
 
     // 清楚画布
     drawClear: function drawClear() {
       this.ctx.clearRect(0, 0, this.width, this.height);
+    },
+
+    // 生成base64
+    makeHeader: function makeHeader(rectWidth) {
+      var canvas2 = document.createElement("canvas");
+      var ctx2 = canvas2.getContext("2d");
+      canvas2.width = rectWidth;
+      canvas2.height = rectWidth;
+      ctx2.putImageData(this.imageData, 0, 0);
+      var base64 = canvas2.toDataURL();
+      this.base64 = base64;
+      // this.$refs.img.src = base64;
+    },
+
+    // 获得base64
+    getBase64Url: function getBase64Url() {
+      return this.base64;
     },
 
     // 初始化
@@ -10422,16 +10483,47 @@ exports.default = {
       this.$refs.canvas.addEventListener("touchend", this.handleTouchEnd);
     },
     handleTouchStart: function handleTouchStart(e) {
+      if (!this.isMove) return;
+
       var x = e.touches[0].screenX;
       var y = e.touches[0].screenY;
+      if (e.touches.length == 2) {
+        this.scaleStart = {
+          x1: e.touches[0].screenX,
+          y1: e.touches[0].screenY,
+          x2: e.touches[1].screenX,
+          y2: e.touches[1].screenY
+        };
+        alert(2);
+        return;
+      }
+      alert(1);
       this.startScreen = { x: x, y: y };
     },
     handleTouchMove: function handleTouchMove(e) {
+      e.preventDefault();
+      if (!this.isMove) return;
+
       var x = e.touches[0].screenX;
       var y = e.touches[0].screenY;
       var mx = x - this.startScreen.x + this.posImg.x;
       var my = y - this.startScreen.y + this.posImg.y;
-      this.drawImg(this.ctx, this.img, mx, my, this.width, this.height);
+
+      if (e.touches.length == 2) {
+        this.scaleMove = {
+          x1: e.touches[0].screenX,
+          y1: e.touches[0].screenY,
+          x2: e.touches[1].screenX,
+          y2: e.touches[1].screenY
+        };
+        var widthRate = Math.abs(this.scaleMove.x2 - this.scaleMove.x1) / Math.abs(this.scaleStart.x2 - this.scaleStart.x1);
+        this.widthRate = widthRate;
+        this.drawImg(this.ctx, this.img, mx, my, (this.imgWidth * widthRate).toFixed(2), (this.imgHeight * widthRate).toFixed(2));
+        return;
+      }
+      // alert(1)
+      this.widthRate = 1;
+      this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
       this.moveScreen = { x: x, y: y };
       this.endScreen = {
         x: mx,
@@ -10439,7 +10531,13 @@ exports.default = {
       };
     },
     handleTouchEnd: function handleTouchEnd(e) {
+      if (!this.isMove) return;
       this.posImg = this.endScreen;
+      // alert(this.widthRate);
+      if (this.widthRate != 1) {
+        this.imgWidth = this.imgWidth * this.widthRate;
+        this.imgHeight = this.imgHeight * this.widthRate;
+      }
     }
   }
 };
@@ -10456,15 +10554,6 @@ exports.default = {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "vquick-cropper" }, [
-    _c(
-      "button",
-      {
-        staticStyle: { position: "fixed", right: "0", top: "0" },
-        on: { click: _vm.click }
-      },
-      [_vm._v("点击裁剪")]
-    ),
-    _vm._v(" "),
     _c("canvas", { ref: "canvas" })
   ])
 }
@@ -10501,7 +10590,7 @@ render._withStripped = true
       
       }
     })();
-},{"_css_loader":"node_modules/_parcel-bundler@1.9.7@parcel-bundler/src/builtins/css-loader.js","vue-hot-reload-api":"node_modules/vue-hot-reload-api/dist/index.js","vue":"node_modules/vue/dist/vue.common.js"}],"src/app.js":[function(require,module,exports) {
+},{"../static/touxiang.jpeg":"static/touxiang.jpeg","_css_loader":"node_modules/_parcel-bundler@1.9.7@parcel-bundler/src/builtins/css-loader.js","vue-hot-reload-api":"node_modules/vue-hot-reload-api/dist/index.js","vue":"node_modules/vue/dist/vue.common.js"}],"src/app.js":[function(require,module,exports) {
 'use strict';
 
 var _vue = require('vue');
@@ -10517,11 +10606,47 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 _vue2.default.component('quick-cropper', _VueQuickCropper2.default);
 
 new _vue2.default({
-    el: '#app',
-    data: {
-        dataList: [1, 2, 3, 4, 5]
+  el: '#app',
+  data: {
+    dataList: [1, 2, 3, 4, 5],
+    imgSrc: ""
+  },
+  methods: {
+    click: function click() {
+      var _this = this;
+
+      this.$nextTick(function () {
+        _this.$refs.cropper.confirm();
+      });
     },
-    methods: {}
+    changepic: function changepic(e) {
+      var _this2 = this;
+
+      var file = e.target.files[0];
+      console.log(file, 'file');
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function (e) {
+        _this2.imgSrc = reader.result;
+        // this.$refs.img.src = reader.result
+        // this.imgSrc = this.dataURLtoBlob(reader.result)
+        _this2.$refs.cropper.init();
+      };
+    },
+    dataURLtoBlob: function dataURLtoBlob(dataurl) {
+      var arr = dataurl.split(','),
+          mime = arr[0].match(/:(.*?);/)[1],
+          bstr = atob(arr[1]),
+          n = bstr.length,
+          u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], {
+        type: mime
+      });
+    }
+  }
 });
 },{"vue":"node_modules/vue/dist/vue.common.js","./VueQuickCropper.vue":"src/VueQuickCropper.vue"}],"node_modules/_parcel-bundler@1.9.7@parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -10552,7 +10677,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '49956' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53148' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
