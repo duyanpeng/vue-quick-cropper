@@ -177,6 +177,7 @@ export default {
 
       let x = e.touches[0].screenX;
       let y = e.touches[0].screenY;
+      this.widthRate = 1;
       if (e.touches.length == 2) {
         this.scaleStart = {
           x1: e.touches[0].screenX,
@@ -184,16 +185,14 @@ export default {
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
-        alert(2)
         return;
       }
-      alert(1)
       this.startScreen = { x, y };
     },
     handleTouchMove(e) {
       e.preventDefault();
       if (!this.isMove) return;
-
+      // this.widthRate = 1;
       let x = e.touches[0].screenX;
       let y = e.touches[0].screenY;
       let mx = x - this.startScreen.x + this.posImg.x;
@@ -206,23 +205,34 @@ export default {
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
-        const widthRate =
+        const widthRate = (
           Math.abs(this.scaleMove.x2 - this.scaleMove.x1) /
-          Math.abs(this.scaleStart.x2 - this.scaleStart.x1);
+          Math.abs(this.scaleStart.x2 - this.scaleStart.x1)
+        ).toFixed(2);
         this.widthRate = widthRate;
-        this.drawImg(
-          this.ctx,
-          this.img,
-          mx,
-          my,
-          (this.imgWidth * widthRate).toFixed(2),
-          (this.imgHeight * widthRate).toFixed(2)
-        );
+        const imgWidth = this.imgWidth*this.widthRate
+        const imgHeight = this.imgHeight*this.widthRate
+              this.drawImg(
+        this.ctx,
+        this.img,
+        mx,
+        my,
+        imgWidth,
+        imgHeight
+      );
         return;
       }
       // alert(1)
-      this.widthRate = 1;
-      this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
+    
+      // this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
+      this.drawImg(
+        this.ctx,
+        this.img,
+        mx,
+        my,
+        this.imgWidth,
+        this.imgHeight
+      );
       this.moveScreen = { x, y };
       this.endScreen = {
         x: mx,
@@ -232,11 +242,14 @@ export default {
     handleTouchEnd(e) {
       if (!this.isMove) return;
       this.posImg = this.endScreen;
+      this.imgWidth = this.widthRate*this.imgWidth;
+      this.imgHeight = this.widthRate*this.imgHeight;
+      this.scaleStart = this.scaleMove;
       // alert(this.widthRate);
-      if (this.widthRate != 1) {
-        this.imgWidth = this.imgWidth * this.widthRate;
-        this.imgHeight = this.imgHeight * this.widthRate;
-      }
+      // if (this.widthRate != 1) {
+      //   this.imgWidth = this.imgWidth * this.widthRate;
+      //   this.imgHeight = this.imgHeight * this.widthRate;
+      // }
     }
   }
 };
