@@ -43,7 +43,9 @@ export default {
         x2: 0,
         y2: 0
       },
-      widthRate: 1
+      widthRate: 1,
+      endImgWidth:0,
+      endImgHeight:0,
     };
   },
 
@@ -205,13 +207,14 @@ export default {
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
+        // 现在的比例
         const widthRate = (
           Math.abs(this.scaleMove.x2 - this.scaleMove.x1) /
           Math.abs(this.scaleStart.x2 - this.scaleStart.x1)
         ).toFixed(2);
         this.widthRate = widthRate;
-        const imgWidth = this.imgWidth*this.widthRate
-        const imgHeight = this.imgHeight*this.widthRate
+        const imgWidth = this.imgWidth - this.imgWidth*this.widthRate
+        const imgHeight = this.imgHeight - this.imgHeight*this.widthRate
               this.drawImg(
         this.ctx,
         this.img,
@@ -220,6 +223,8 @@ export default {
         imgWidth,
         imgHeight
       );
+      this.endImgWidth = imgWidth
+      this.endImgHeight = imgHeight
         return;
       }
       // alert(1)
@@ -233,6 +238,8 @@ export default {
         this.imgWidth,
         this.imgHeight
       );
+      this.endImgWidth = this.imgWidth
+      this.endImgHeight = this.imgHeight
       this.moveScreen = { x, y };
       this.endScreen = {
         x: mx,
@@ -242,8 +249,8 @@ export default {
     handleTouchEnd(e) {
       if (!this.isMove) return;
       this.posImg = this.endScreen;
-      this.imgWidth = this.widthRate*this.imgWidth;
-      this.imgHeight = this.widthRate*this.imgHeight;
+      this.imgWidth = this.endImgWidth;
+      this.imgHeight = this.endImgHeight;
       this.scaleStart = this.scaleMove;
       // alert(this.widthRate);
       // if (this.widthRate != 1) {

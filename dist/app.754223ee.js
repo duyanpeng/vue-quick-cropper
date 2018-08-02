@@ -10356,7 +10356,9 @@ exports.default = {
         x2: 0,
         y2: 0
       },
-      widthRate: 1
+      widthRate: 1,
+      endImgWidth: 0,
+      endImgHeight: 0
     };
   },
 
@@ -10515,17 +10517,22 @@ exports.default = {
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
+        // 现在的比例
         var widthRate = (Math.abs(this.scaleMove.x2 - this.scaleMove.x1) / Math.abs(this.scaleStart.x2 - this.scaleStart.x1)).toFixed(2);
         this.widthRate = widthRate;
-        var imgWidth = this.imgWidth * this.widthRate;
-        var imgHeight = this.imgHeight * this.widthRate;
+        var imgWidth = this.imgWidth - this.imgWidth * this.widthRate;
+        var imgHeight = this.imgHeight - this.imgHeight * this.widthRate;
         this.drawImg(this.ctx, this.img, mx, my, imgWidth, imgHeight);
+        this.endImgWidth = imgWidth;
+        this.endImgHeight = imgHeight;
         return;
       }
       // alert(1)
 
       // this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
       this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
+      this.endImgWidth = this.imgWidth;
+      this.endImgHeight = this.imgHeight;
       this.moveScreen = { x: x, y: y };
       this.endScreen = {
         x: mx,
@@ -10535,8 +10542,8 @@ exports.default = {
     handleTouchEnd: function handleTouchEnd(e) {
       if (!this.isMove) return;
       this.posImg = this.endScreen;
-      this.imgWidth = this.widthRate * this.imgWidth;
-      this.imgHeight = this.widthRate * this.imgHeight;
+      this.imgWidth = this.endImgWidth;
+      this.imgHeight = this.endImgHeight;
       this.scaleStart = this.scaleMove;
       // alert(this.widthRate);
       // if (this.widthRate != 1) {
@@ -10682,7 +10689,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '53148' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62838' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
