@@ -10338,8 +10338,7 @@ exports.default = {
       imgWidth: 0,
       imgHeight: 0,
       startScreen: undefined, // 触摸点坐标
-      moveScreen: { x: 0, y: 0 }, // 移动中点坐标
-      endScreen: undefined, // 结束触摸点坐标
+      endScreen: { x: 0, y: 0 }, // 结束触摸点坐标
       posImg: { x: 0, y: 0 }, // 照片移动的距离
       imageData: {}, // 裁剪区域的canvas信息值
       base64: "", // 头像的base64
@@ -10428,6 +10427,7 @@ exports.default = {
 
     // 裁剪头像
     drawHeader: function drawHeader(ctx, img, x, y, width, height) {
+      alert(x + ":" + y);
       this.isMove = false;
       var rectWidth = this.width * 0.8;
       var rectHeight = this.height * 0.8;
@@ -10486,58 +10486,74 @@ exports.default = {
     },
     handleTouchStart: function handleTouchStart(e) {
       if (!this.isMove) return;
+      if (e.touches.length == 1) {
+        var x = e.touches[0].screenX;
+        var y = e.touches[0].screenY;
+        this.startScreen = { x: x, y: y };
+      }
 
-      var x = e.touches[0].screenX;
-      var y = e.touches[0].screenY;
-      this.widthRate = 1;
       if (e.touches.length == 2) {
+        // 以左面手指位置为准
+        var _x = e.touches[0].screenX <= e.touches[1].screenX ? e.touches[0].screenX : e.touches[1].screenX;
+        var _y = e.touches[0].screenX <= e.touches[1].screenX ? e.touches[0].screenY : e.touches[1].screenY;
+        this.startScreen = { x: _x, y: _y };
         this.scaleStart = {
           x1: e.touches[0].screenX,
           y1: e.touches[0].screenY,
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
-        return;
       }
-      this.startScreen = { x: x, y: y };
+      // 重制最后图片大小等于现在图片大小
+      this.widthRate = 1;
+      this.endImgWidth = this.imgWidth;
+      this.endImgHeight = this.imgHeight;
     },
     handleTouchMove: function handleTouchMove(e) {
       e.preventDefault();
       if (!this.isMove) return;
-      // this.widthRate = 1;
-      var x = e.touches[0].screenX;
-      var y = e.touches[0].screenY;
-      var mx = x - this.startScreen.x + this.posImg.x;
-      var my = y - this.startScreen.y + this.posImg.y;
+
+      if (e.touches.length == 1) {
+        var x = e.touches[0].screenX;
+        var y = e.touches[0].screenY;
+        var mx = x - this.startScreen.x + this.posImg.x;
+        var my = y - this.startScreen.y + this.posImg.y;
+        this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
+
+        this.endImgWidth = this.imgWidth;
+        this.endImgHeight = this.imgHeight;
+
+        this.endScreen = {
+          x: mx,
+          y: my
+        };
+      }
 
       if (e.touches.length == 2) {
+        var _x2 = e.touches[0].screenX <= e.touches[1].screenX ? e.touches[0].screenX : e.touches[1].screenX;
+        var _y2 = e.touches[0].screenX <= e.touches[1].screenX ? e.touches[0].screenY : e.touches[1].screenY;
+        var _mx = _x2 - this.startScreen.x + this.posImg.x;
+        var _my = _y2 - this.startScreen.y + this.posImg.y;
         this.scaleMove = {
           x1: e.touches[0].screenX,
           y1: e.touches[0].screenY,
           x2: e.touches[1].screenX,
           y2: e.touches[1].screenY
         };
-        // 现在的比例
-        var widthRate = (Math.abs(this.scaleMove.x2 - this.scaleMove.x1) / Math.abs(this.scaleStart.x2 - this.scaleStart.x1)).toFixed(2);
+        // 缩小的比例
+        var widthRate = ((Math.abs(this.scaleStart.x2 - this.scaleStart.x1) - Math.abs(this.scaleMove.x2 - this.scaleMove.x1)) / Math.abs(this.scaleStart.x2 - this.scaleStart.x1)).toFixed(2);
         this.widthRate = widthRate;
+
         var imgWidth = this.imgWidth - this.imgWidth * this.widthRate;
         var imgHeight = this.imgHeight - this.imgHeight * this.widthRate;
-        this.drawImg(this.ctx, this.img, mx, my, imgWidth, imgHeight);
+        this.drawImg(this.ctx, this.img, _mx, _my, imgWidth, imgHeight);
         this.endImgWidth = imgWidth;
         this.endImgHeight = imgHeight;
-        return;
+        this.endScreen = {
+          x: _mx,
+          y: _my
+        };
       }
-      // alert(1)
-
-      // this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
-      this.drawImg(this.ctx, this.img, mx, my, this.imgWidth, this.imgHeight);
-      this.endImgWidth = this.imgWidth;
-      this.endImgHeight = this.imgHeight;
-      this.moveScreen = { x: x, y: y };
-      this.endScreen = {
-        x: mx,
-        y: my
-      };
     },
     handleTouchEnd: function handleTouchEnd(e) {
       if (!this.isMove) return;
@@ -10545,11 +10561,6 @@ exports.default = {
       this.imgWidth = this.endImgWidth;
       this.imgHeight = this.endImgHeight;
       this.scaleStart = this.scaleMove;
-      // alert(this.widthRate);
-      // if (this.widthRate != 1) {
-      //   this.imgWidth = this.imgWidth * this.widthRate;
-      //   this.imgHeight = this.imgHeight * this.widthRate;
-      // }
     }
   }
 };
