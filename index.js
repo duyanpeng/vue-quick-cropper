@@ -1,5 +1,5 @@
 
-import VueQuickCropper from './src/VueQuickLoadmore.vue';
+import VueQuickCropper from './src/VueQuickCropper.vue';
 
 export default {
     install(Vue){

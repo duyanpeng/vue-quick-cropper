@@ -1,6 +1,6 @@
 {
   "name": "vue-quick-cropper",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "基于vue的移动端头像裁剪插件",
   "main": "index.js",
   "scripts": {

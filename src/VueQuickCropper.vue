@@ -15,7 +15,7 @@ export default {
     imgSrc: {},
     imgType:{
       default:'png'
-    }
+    },
   },
   data() {
     return {
@@ -223,8 +223,9 @@ export default {
       canvas2.height = rectWidth;
       ctx2.putImageData(this.imageData, 0, 0);
       const base64 = canvas2.toDataURL('image/' + this.imgType);
-      this.data = this.convertBase64UrlToBlob(base64)
+      this.data = this.convertBase64UrlToBlob(base64);
       this.base64 = base64;
+      this.$emit('finish',this.base64,this.data)
     },
     // 获得base64
     getBase64Url() {

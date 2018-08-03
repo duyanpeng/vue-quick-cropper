@@ -6,41 +6,35 @@ Vue.component('quick-cropper', VueQuickCropper)
 new Vue({
   el: '#app',
   data: {
-    dataList: [1, 2, 3, 4, 5],
-    imgSrc: ""
+    imgSrc: "",    // 图片数据
+    visible:false,  // 剪切框展示
   },
   methods: {
-    click() {
+    // 获得头像的base64和二进制
+    finish(base64,data){
+      console.log(base64,'图片base64')
+      console.log(data,'图片二进制')
+    },
+    // 确定使用
+    confirm() {
       this.$nextTick(() => {
         this.$refs.cropper.confirm()
       })
     },
-    changepic(e) {
-      console.log(1)
+    // 取消
+    cancel(){
+      this.visible = false
+    },
+    // 选择img回调
+    choiceImg(e) {    
+      this.visible = true
       const file = e.target.files[0]
-      console.log(file, 'file')
       const reader = new FileReader();
       reader.readAsDataURL(file)
       reader.onload = (e) => {
         this.imgSrc = reader.result
-        // this.$refs.img.src = reader.result
-        // this.imgSrc = this.dataURLtoBlob(reader.result)
         this.$refs.cropper.init()
       }
     },
-     dataURLtoBlob(dataurl) {
-      var arr = dataurl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]),
-      n = bstr.length,
-      u8arr = new Uint8Array(n);
-      while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], {
-          type: mime
-      });
-  }
-   
   }
 })

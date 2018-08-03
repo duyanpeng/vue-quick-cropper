@@ -26,37 +26,56 @@
             overflow: hidden;
         }
 
-        #app {
+        .main {
+            height:100%;
             box-sizing: border-box;
             padding-top: 44px;
-
         }
 
         .content {
             height: 100%;
         }
 
-        .button {
+        .header {
             position: fixed;
             top: 0;
             right: 0;
             height: 44px;
             width: 100%;
-            background: green;
+            background: #303030;
+        }
+
+        .button {
+            float: right;
+            height: 44px;
+            line-height: 44px;
+            font-size: 14px;
+            margin-right: 15px;
+            color: green;
+        }
+        .cancel{
+            float:left;
+            margin-left:15px;
         }
     </style>
 </head>
 
 <body>
+    
     <div id="app">
-        <div class="button">
-            <button @click="click">点击裁剪</button>
-            <input ref="file" @change="changepic" type="file">
+        <div v-if="!visible">
+                <input ref="file" @change="choiceImg" type="file">
         </div>
-        <div class="content">
-            <!-- <img  ref="img" alt=""> -->
-            <quick-cropper ref="cropper" :img-src="imgSrc">
-            </quick-cropper>
+        <div class="main" v-if="visible">
+            <div class="header">
+                <div class="button" @click="confirm">使用</div>
+                <div class="button cancel" @click="cancel">取消</div>
+                
+            </div>
+            <div class="content">
+                <quick-cropper ref="cropper" :img-src="imgSrc" @finish="finish">
+                </quick-cropper>
+            </div>
         </div>
     </div>
 

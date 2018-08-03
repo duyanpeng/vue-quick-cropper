@@ -11592,6 +11592,7 @@ exports.default = {
       var base64 = canvas2.toDataURL('image/' + this.imgType);
       this.data = this.convertBase64UrlToBlob(base64);
       this.base64 = base64;
+      this.$emit('finish', this.base64, this.data);
     },
 
     // 获得base64
@@ -11783,44 +11784,42 @@ _vue2.default.component('quick-cropper', _VueQuickCropper2.default);
 new _vue2.default({
   el: '#app',
   data: {
-    dataList: [1, 2, 3, 4, 5],
-    imgSrc: ""
+    imgSrc: "", // 图片数据
+    visible: false // 剪切框展示
   },
   methods: {
-    click: function click() {
+    // 获得头像的base64和二进制
+    finish: function finish(base64, data) {
+      console.log(base64, '图片base64');
+      console.log(data, '图片二进制');
+    },
+
+    // 确定使用
+    confirm: function confirm() {
       var _this = this;
 
       this.$nextTick(function () {
         _this.$refs.cropper.confirm();
       });
     },
-    changepic: function changepic(e) {
+
+    // 取消
+    cancel: function cancel() {
+      this.visible = false;
+    },
+
+    // 选择img回调
+    choiceImg: function choiceImg(e) {
       var _this2 = this;
 
-      console.log(1);
+      this.visible = true;
       var file = e.target.files[0];
-      console.log(file, 'file');
       var reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = function (e) {
         _this2.imgSrc = reader.result;
-        // this.$refs.img.src = reader.result
-        // this.imgSrc = this.dataURLtoBlob(reader.result)
         _this2.$refs.cropper.init();
       };
-    },
-    dataURLtoBlob: function dataURLtoBlob(dataurl) {
-      var arr = dataurl.split(','),
-          mime = arr[0].match(/:(.*?);/)[1],
-          bstr = atob(arr[1]),
-          n = bstr.length,
-          u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], {
-        type: mime
-      });
     }
   }
 });
