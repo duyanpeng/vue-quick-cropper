@@ -16,6 +16,7 @@ new Vue({
       })
     },
     changepic(e) {
+      console.log(1)
       const file = e.target.files[0]
       console.log(file, 'file')
       const reader = new FileReader();

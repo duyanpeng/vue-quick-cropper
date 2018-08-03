@@ -1,7 +1,7 @@
 <!--  -->
 <template>
   <div class="vquick-cropper">
-    <!-- <img ref="img" alt=""> -->
+    <!-- <img ref="img" :src="imgSrcs"  alt=""> -->
 
     <canvas ref="canvas"></canvas>
     <!-- <canvas ref="canvas2" width="300" height="300"></canvas> -->
@@ -9,42 +9,45 @@
 </template>
 
 <script>
+import exif from "exif-js";
 export default {
   props: {
-    imgSrc: {}
+    imgSrc: {},
+    imgType:{
+      default:'png'
+    }
   },
   data() {
     return {
-      imgSrcs:
-        // "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1532688589528&di=9cbedf775f773bd21d13c2ef737663b4&imgtype=0&src=http%3A%2F%2Fimg4.duitang.com%2Fuploads%2Fitem%2F201504%2F22%2F20150422H1756_sNuWa.thumb.700_0.jpeg",
-        require("../static/touxiang.jpeg"),
-      ctx: {}, // canvas实例
-      img: {}, // img实例
-      width: 0, // canvas宽
+      imgSrcs:'',  // canvas渲染的图片
+      ctx: {},    // canvas实例
+      img: {},    // img实例
+      width: 0,   // canvas宽
       height: 0, // canvas高
-      imgWidth: 0,
-      imgHeight: 0,
+      imgWidth: 0,  //图片宽度
+      imgHeight: 0,  // 图片高度
       startScreen: undefined, // 触摸点坐标
       endScreen: { x: 0, y: 0 }, // 结束触摸点坐标
       posImg: { x: 0, y: 0 }, // 照片移动的距离
       imageData: {}, // 裁剪区域的canvas信息值
       base64: "", // 头像的base64
+      data:[],  // 头像的二进值
       isMove: true, // 是否能拖动图片
-      scaleStart: {
+      scaleStart: {  // 双指开始触摸点
         x1: 0,
         y1: 0,
         x2: 0,
         y2: 0
       },
-      scaleMove: {
+      scaleMove: { // 双指结束触摸点
         x1: 0,
         y1: 0,
         x2: 0,
         y2: 0
       },
-      widthRate: 1,
-      endImgWidth: 0,
-      endImgHeight: 0
+      widthRate: 1,  // 图片缩放比例
+      endImgWidth: 0,  // 图片最后宽度
+      endImgHeight: 0 // 图片最后高度
     };
   },
 
@@ -57,6 +60,7 @@ export default {
   },
 
   methods: {
+    // 确认按钮
     confirm() {
       const rectWidth = this.width * 0.8;
       const rectHeight = this.height * 0.8;
@@ -69,6 +73,58 @@ export default {
         -this.posImg.y + rectY
       );
     },
+    // 判断图片方向
+    imgDirection() {
+      this.$nextTick(() => {
+        const img = new Image();
+        img.src = this.imgSrc;
+
+        let rate = 1;
+
+        img.onload = () => {
+          // 获得图片方向
+          exif.getData(img, () => {
+            this.orientation = exif.getTag(img, "Orientation");
+          });
+          // 6说明是正向的手机相片  
+          if (this.orientation == 6) {
+            // undefined证明不是手机拍照相片为网络图片不做处理
+          } else {
+            this.imgSrcs = this.imgSrc;
+            this.initCanvas();
+            return;
+          }
+          const width = this.$el.getBoundingClientRect().width;
+          const height = this.$el.getBoundingClientRect().height;
+          const canvas3 = document.createElement("canvas");
+          const ctx3 = canvas3.getContext("2d");
+          const fwidth = img.height;
+          const fheight = img.width
+
+          // 如果是相机图片则旋转90度
+          if (fwidth / width > 1) {
+            rate = fwidth / width;
+          }
+
+          const imgWidth = fwidth / rate;
+          const imgHeight = fheight / rate;
+          
+          
+          canvas3.width = imgWidth; 
+          canvas3.height = imgHeight; 
+
+          ctx3.translate(0.5 * imgWidth, 0.5 * imgHeight);
+          ctx3.rotate(90 * Math.PI / 180);
+          ctx3.translate(-0.5 * imgHeight, -0.5 * imgWidth);
+
+          ctx3.drawImage(img, 0, 0, imgHeight, imgWidth);
+          
+          const base64 = canvas3.toDataURL();
+          this.imgSrcs = base64;
+          this.initCanvas();
+        };
+      });
+    },
     // 初始化canvas
     initCanvas() {
       this.$nextTick(() => {
@@ -78,11 +134,10 @@ export default {
         C.height = this.$el.getBoundingClientRect().height;
 
         const ctx = C.getContext("2d");
-        // ctx.globalAlpha = 0.8
 
         const img = new Image();
 
-        img.src = this.imgSrc;
+        img.src = this.imgSrcs;
         this.ctx = ctx;
         this.img = img;
         this.width = C.width;
@@ -90,29 +145,32 @@ export default {
         let rate = 1;
 
         img.onload = () => {
-          if (img.width / C.width > 1) {
-            rate = img.width / C.width;
-          }
+     
+          rate = img.width / (C.width * 0.8);
+
+          const rectWidth = this.width * 0.8;
+          const rectHeight = this.height * 0.8;
+          const rectX = this.width * 0.1;
+          const rectY = (this.height - rectWidth) / 2;
           this.imgWidth = img.width / rate;
           this.imgHeight = img.height / rate;
-          this.drawImg(ctx, img, 0, 0, this.imgWidth, this.imgHeight);
+          this.posImg = {x:rectX,y:rectY}
+         
+          this.drawImg(ctx, img, rectX, rectY, this.imgWidth, this.imgHeight);
           // 裁剪框
           this.drawRect();
         };
       });
     },
-    // 画头像
+    // 画图像
     drawImg(ctx, img, x, y, width, height) {
-      this.drawClear();
+      this.drawClear(ctx);
       ctx.drawImage(img, x, y, width, height);
 
-      ctx.fillStyle = "rgba(0,0,0,.1)";
-      ctx.fillRect(0, 0, this.width, this.height);
       this.drawRect();
     },
     // 裁剪头像
     drawHeader(ctx, img, x, y, width, height) {
-      // alert(x+ ":" + y)
       this.isMove = false;
       const rectWidth = this.width * 0.8;
       const rectHeight = this.height * 0.8;
@@ -122,7 +180,7 @@ export default {
       ctx.drawImage(
         img,
         (-this.posImg.x + rectX) * (this.img.width / this.imgWidth),
-         (-this.posImg.y + rectY) * (this.img.width / this.imgWidth),
+        (-this.posImg.y + rectY) * (this.img.width / this.imgWidth),
         rectWidth * (this.img.width / this.imgWidth),
         rectWidth * (this.img.width / this.imgWidth),
         rectX,
@@ -139,15 +197,23 @@ export default {
     // 画剪切框
     drawRect() {
       const rectWidth = this.width * 0.8;
+      const rectHeight = this.height * 0.8;
       const rectX = this.width * 0.1;
       const rectY = (this.height - rectWidth) / 2;
+
+      this.ctx.fillStyle = "rgba(0,0,0,.3)";
+      this.ctx.fillRect(0, 0, this.width, rectY);
+      this.ctx.fillRect(0, rectY, rectX, rectWidth);
+      this.ctx.fillRect(rectX+rectWidth, rectY, rectX, rectWidth);
+      this.ctx.fillRect(0, rectY+rectWidth, this.width, this.height);
+      
       this.ctx.strokeStyle = "#fff";
       this.ctx.lineWidth = ".5";
       this.ctx.strokeRect(rectX, rectY, rectWidth, rectWidth);
     },
     // 清楚画布
-    drawClear() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
+    drawClear(ctx = this.ctx) {
+      ctx.clearRect(0, 0, this.width, this.height);
     },
     // 生成base64
     makeHeader(rectWidth) {
@@ -156,18 +222,34 @@ export default {
       canvas2.width = rectWidth;
       canvas2.height = rectWidth;
       ctx2.putImageData(this.imageData, 0, 0);
-      const base64 = canvas2.toDataURL();
+      const base64 = canvas2.toDataURL('image/' + this.imgType);
+      this.data = this.convertBase64UrlToBlob(base64)
       this.base64 = base64;
-      // this.$refs.img.src = base64;
     },
     // 获得base64
     getBase64Url() {
       return this.base64;
     },
+    // 获得二进制数据
+    getData(){
+      return this.data
+    },
+    // base64转blob
+    convertBase64UrlToBlob(urlData){
+       var bytes=window.atob(urlData.split(',')[1]);        //去掉url的头，并转换为byte
+       //处理异常,将ascii码小于0的转换为大于0
+       var ab = new ArrayBuffer(bytes.length);
+       var ia = new Uint8Array(ab);
+       for (var i = 0; i < bytes.length; i++) {
+           ia[i] = bytes.charCodeAt(i);
+       }
+       return new Blob( [ab] , {type : 'image/png'});
+   },
     // 初始化
     init() {
-      this.initCanvas();
+      this.imgDirection();
       this.bindTouchEvents();
+      this.isMove = true
     },
     bindTouchEvents() {
       this.$refs.canvas.addEventListener("touchstart", this.handleTouchStart);
@@ -179,7 +261,7 @@ export default {
       if (e.touches.length == 1) {
         let x = e.touches[0].screenX;
         let y = e.touches[0].screenY;
-        this.startScreen = { x, y };
+          this.startScreen = { x, y };
       }
 
       if (e.touches.length == 2) {

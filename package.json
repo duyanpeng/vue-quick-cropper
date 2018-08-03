@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "vue": "^2.5.16",
-    "vue-hot-reload-api": "^2.3.0"
+    "vue-hot-reload-api": "^2.3.0",
+    "exif-js": "^2.3.0"
   }
 }
