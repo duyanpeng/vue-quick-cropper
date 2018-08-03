@@ -10427,14 +10427,14 @@ exports.default = {
 
     // 裁剪头像
     drawHeader: function drawHeader(ctx, img, x, y, width, height) {
-      alert(x + ":" + y);
+      // alert(x+ ":" + y)
       this.isMove = false;
       var rectWidth = this.width * 0.8;
       var rectHeight = this.height * 0.8;
       var rectX = this.width * 0.1;
       var rectY = (this.height - rectWidth) / 2;
       this.drawClear();
-      ctx.drawImage(img, x * (this.img.width / this.width), y * (this.img.width / this.width), rectWidth * (this.img.width / this.imgWidth), rectWidth * (this.img.width / this.imgWidth), rectX, rectY, rectWidth, rectWidth);
+      ctx.drawImage(img, (-this.posImg.x + rectX) * (this.img.width / this.imgWidth), (-this.posImg.y + rectY) * (this.img.width / this.imgWidth), rectWidth * (this.img.width / this.imgWidth), rectWidth * (this.img.width / this.imgWidth), rectX, rectY, rectWidth, rectWidth);
 
       this.imageData = ctx.getImageData(rectX, rectY, rectWidth, rectWidth);
 

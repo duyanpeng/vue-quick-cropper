@@ -112,7 +112,7 @@ export default {
     },
     // 裁剪头像
     drawHeader(ctx, img, x, y, width, height) {
-      alert(x+ ":" + y)
+      // alert(x+ ":" + y)
       this.isMove = false;
       const rectWidth = this.width * 0.8;
       const rectHeight = this.height * 0.8;
@@ -121,8 +121,8 @@ export default {
       this.drawClear();
       ctx.drawImage(
         img,
-        x * (this.img.width / this.width),
-        y * (this.img.width / this.width),
+        (-this.posImg.x + rectX) * (this.img.width / this.imgWidth),
+         (-this.posImg.y + rectY) * (this.img.width / this.imgWidth),
         rectWidth * (this.img.width / this.imgWidth),
         rectWidth * (this.img.width / this.imgWidth),
         rectX,
