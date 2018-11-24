@@ -4,7 +4,7 @@
 
 A mobile image cropping upload plugin for Vue. (styles like WeChat, single finger moving two-finger zoom)--vue的移动端图片裁剪上传插件(样式仿照微信，可单指移动双指缩放)
 
-[zh-CN中文文档](https://github.com/duyanpeng/vue-quick-loadmore/blob/master/README.zh-CN.md)
+[zh-CN中文文档](https://github.com/duyanpeng/vue-quick-cropper/blob/master/README.zh-CN.md)
 
 ![xiaoguozhanshi](./static/cropper.gif)
 
