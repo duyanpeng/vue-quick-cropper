@@ -140,7 +140,7 @@ body,
 ---
 参数|类型|说明|备注
 :--:|:--:|:--:|:--:
-v-bind:imgSrc|String|图片src|通过fileReader读取，见例子
+v-bind:imgSrc|String|图片src|通过fileReader读取，见例子
 v-bind:imgType|String|生成图片数据格式|"png","jpeg",默认"png"
 v-on:finish|Function|剪切完成回调，返回base64数据和二进制数据|finish(base64,data)具体见示例代码
 ref.init|Function|imgSrc获取成功时调用|告诉cropper可以渲染图片具体见示例代码
