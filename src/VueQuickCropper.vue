@@ -1,10 +1,7 @@
 <!--  -->
 <template>
   <div class="vquick-cropper">
-    <!-- <img ref="img" :src="imgSrcs"  alt=""> -->
-
     <canvas ref="canvas"></canvas>
-    <!-- <canvas ref="canvas2" width="300" height="300"></canvas> -->
   </div>
 </template>
 
@@ -13,40 +10,42 @@ import exif from "exif-js";
 export default {
   props: {
     imgSrc: {},
-    imgType:{
-      default:'png'
-    },
+    imgType: {
+      default: "png"
+    }
   },
   data() {
     return {
-      imgSrcs:'',  // canvas渲染的图片
-      ctx: {},    // canvas实例
-      img: {},    // img实例
-      width: 0,   // canvas宽
+      imgSrcs: "", // canvas渲染的图片
+      ctx: {}, // canvas实例
+      img: {}, // img实例
+      width: 0, // canvas宽
       height: 0, // canvas高
-      imgWidth: 0,  //图片宽度
-      imgHeight: 0,  // 图片高度
+      imgWidth: 0, //图片宽度
+      imgHeight: 0, // 图片高度
       startScreen: undefined, // 触摸点坐标
       endScreen: { x: 0, y: 0 }, // 结束触摸点坐标
       posImg: { x: 0, y: 0 }, // 照片移动的距离
       imageData: {}, // 裁剪区域的canvas信息值
       base64: "", // 头像的base64
-      data:[],  // 头像的二进值
+      data: [], // 头像的二进值
       isMove: true, // 是否能拖动图片
-      scaleStart: {  // 双指开始触摸点
+      scaleStart: {
+        // 双指开始触摸点
         x1: 0,
         y1: 0,
         x2: 0,
         y2: 0
       },
-      scaleMove: { // 双指结束触摸点
+      scaleMove: {
+        // 双指结束触摸点
         x1: 0,
         y1: 0,
         x2: 0,
         y2: 0
       },
-      widthRate: 1,  // 图片缩放比例
-      endImgWidth: 0,  // 图片最后宽度
+      widthRate: 1, // 图片缩放比例
+      endImgWidth: 0, // 图片最后宽度
       endImgHeight: 0 // 图片最后高度
     };
   },
@@ -56,7 +55,7 @@ export default {
   computed: {},
   watch: {},
   mounted() {
-    // this.init();
+     this.init();
   },
 
   methods: {
@@ -86,7 +85,7 @@ export default {
           exif.getData(img, () => {
             this.orientation = exif.getTag(img, "Orientation");
           });
-          // 6说明是正向的手机相片  
+          // 6说明是正向的手机相片
           if (this.orientation == 6) {
             // undefined证明不是手机拍照相片为网络图片不做处理
           } else {
@@ -99,7 +98,7 @@ export default {
           const canvas3 = document.createElement("canvas");
           const ctx3 = canvas3.getContext("2d");
           const fwidth = img.height;
-          const fheight = img.width
+          const fheight = img.width;
 
           // 如果是相机图片则旋转90度
           if (fwidth / width > 1) {
@@ -108,17 +107,16 @@ export default {
 
           const imgWidth = fwidth / rate;
           const imgHeight = fheight / rate;
-          
-          
-          canvas3.width = imgWidth; 
-          canvas3.height = imgHeight; 
+
+          canvas3.width = imgWidth;
+          canvas3.height = imgHeight;
 
           ctx3.translate(0.5 * imgWidth, 0.5 * imgHeight);
           ctx3.rotate(90 * Math.PI / 180);
           ctx3.translate(-0.5 * imgHeight, -0.5 * imgWidth);
 
           ctx3.drawImage(img, 0, 0, imgHeight, imgWidth);
-          
+
           const base64 = canvas3.toDataURL();
           this.imgSrcs = base64;
           this.initCanvas();
@@ -145,7 +143,6 @@ export default {
         let rate = 1;
 
         img.onload = () => {
-     
           rate = img.width / (C.width * 0.8);
 
           const rectWidth = this.width * 0.8;
@@ -154,8 +151,8 @@ export default {
           const rectY = (this.height - rectWidth) / 2;
           this.imgWidth = img.width / rate;
           this.imgHeight = img.height / rate;
-          this.posImg = {x:rectX,y:rectY}
-         
+          this.posImg = { x: rectX, y: rectY };
+
           this.drawImg(ctx, img, rectX, rectY, this.imgWidth, this.imgHeight);
           // 裁剪框
           this.drawRect();
@@ -204,9 +201,9 @@ export default {
       this.ctx.fillStyle = "rgba(0,0,0,.3)";
       this.ctx.fillRect(0, 0, this.width, rectY);
       this.ctx.fillRect(0, rectY, rectX, rectWidth);
-      this.ctx.fillRect(rectX+rectWidth, rectY, rectX, rectWidth);
-      this.ctx.fillRect(0, rectY+rectWidth, this.width, this.height);
-      
+      this.ctx.fillRect(rectX + rectWidth, rectY, rectX, rectWidth);
+      this.ctx.fillRect(0, rectY + rectWidth, this.width, this.height);
+
       this.ctx.strokeStyle = "#fff";
       this.ctx.lineWidth = ".5";
       this.ctx.strokeRect(rectX, rectY, rectWidth, rectWidth);
@@ -222,35 +219,35 @@ export default {
       canvas2.width = rectWidth;
       canvas2.height = rectWidth;
       ctx2.putImageData(this.imageData, 0, 0);
-      const base64 = canvas2.toDataURL('image/' + this.imgType);
+      const base64 = canvas2.toDataURL("image/" + this.imgType);
       this.data = this.convertBase64UrlToBlob(base64);
       this.base64 = base64;
-      this.$emit('finish',this.base64,this.data)
+      this.$emit("finish", this.base64, this.data);
     },
     // 获得base64
     getBase64Url() {
       return this.base64;
     },
     // 获得二进制数据
-    getData(){
-      return this.data
+    getData() {
+      return this.data;
     },
     // base64转blob
-    convertBase64UrlToBlob(urlData){
-       var bytes=window.atob(urlData.split(',')[1]);        //去掉url的头，并转换为byte
-       //处理异常,将ascii码小于0的转换为大于0
-       var ab = new ArrayBuffer(bytes.length);
-       var ia = new Uint8Array(ab);
-       for (var i = 0; i < bytes.length; i++) {
-           ia[i] = bytes.charCodeAt(i);
-       }
-       return new Blob( [ab] , {type : 'image/png'});
-   },
+    convertBase64UrlToBlob(urlData) {
+      var bytes = window.atob(urlData.split(",")[1]); //去掉url的头，并转换为byte
+      //处理异常,将ascii码小于0的转换为大于0
+      var ab = new ArrayBuffer(bytes.length);
+      var ia = new Uint8Array(ab);
+      for (var i = 0; i < bytes.length; i++) {
+        ia[i] = bytes.charCodeAt(i);
+      }
+      return new Blob([ab], { type: "image/png" });
+    },
     // 初始化
     init() {
       this.imgDirection();
       this.bindTouchEvents();
-      this.isMove = true
+      this.isMove = true;
     },
     bindTouchEvents() {
       this.$refs.canvas.addEventListener("touchstart", this.handleTouchStart);
@@ -262,7 +259,7 @@ export default {
       if (e.touches.length == 1) {
         let x = e.touches[0].screenX;
         let y = e.touches[0].screenY;
-          this.startScreen = { x, y };
+        this.startScreen = { x, y };
       }
 
       if (e.touches.length == 2) {
